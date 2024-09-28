@@ -9,17 +9,20 @@ const addOrderItems = asyncHandler(async (req, res) => {
     orderItems,
     shippingAddress,
     paymentMethod,
-    itemsPrice,
     taxPrice,
     shippingPrice,
-    totalPrice,
   } = req.body;
 
   if (orderItems && orderItems.length === 0) {
     res.status(400);
     throw new Error('No order items');
-    return;
   } else {
+    // Calculate itemsPrice
+    const itemsPrice = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+
+    // Calculate totalAmount
+    const totalAmount = itemsPrice + taxPrice + shippingPrice;
+
     const order = new Order({
       orderItems,
       user: req.user._id,
@@ -28,7 +31,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
       itemsPrice,
       taxPrice,
       shippingPrice,
-      totalPrice,
+      totalPrice: totalAmount, // Ensure totalPrice is set here
       isPaid: paymentMethod === 'COD' ? false : true, // Handle COD
       paidAt: paymentMethod === 'COD' ? null : Date.now(), // Only set paidAt for non-COD payments
     });
@@ -110,7 +113,7 @@ const getOrders = asyncHandler(async (req, res) => {
   res.json(orders);
 });
 
-// @desc    Update shipping status (this integrates the shipping update logic)
+// @desc    Update shipping status
 // @route   POST /api/orders/update-shipping-status
 // @access  Private/Admin
 const updateShippingStatus = asyncHandler(async (req, res) => {
