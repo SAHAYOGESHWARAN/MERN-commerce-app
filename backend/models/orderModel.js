@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+// Define the order schema
 const orderSchema = mongoose.Schema(
   {
     user: {
@@ -88,5 +89,4 @@ const orderSchema = mongoose.Schema(
 
 // Create and export the Order model
 const Order = mongoose.model('Order', orderSchema);
-
 export default Order;

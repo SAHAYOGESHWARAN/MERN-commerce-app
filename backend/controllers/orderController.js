@@ -156,6 +156,34 @@ const updateShippingStatus = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Update order status (delivered and paid)
+// @route   POST /api/orders/update-order/:orderId
+// @access  Private/Admin
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { delivered, paid } = req.body; // Expecting boolean values
+
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { isDelivered: delivered, isPaid: paid },
+      { new: true }
+    );
+
+    if (updatedOrder) {
+      return res.status(200).json({
+        message: 'Order updated successfully',
+        order: updatedOrder,
+      });
+    } else {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 export {
   addOrderItems,
   getOrderById,
@@ -164,4 +192,5 @@ export {
   getMyOrders,
   getOrders,
   updateShippingStatus,
+  updateOrderStatus, // Export the updateOrderStatus function
 };
