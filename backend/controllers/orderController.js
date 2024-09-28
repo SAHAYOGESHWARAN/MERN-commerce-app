@@ -16,17 +16,17 @@ const addOrderItems = asyncHandler(async (req, res) => {
   // Validate input fields
   if (!orderItems || orderItems.length === 0) {
     res.status(400);
-    throw new Error('No order items');
+    throw new Error('No order items provided');
   }
 
   // Calculate itemsPrice
   const itemsPrice = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
 
   // Ensure taxPrice and shippingPrice are numbers
-  const tax = parseFloat(taxPrice) || 0; // Default to 0 if parsing fails
-  const shipping = parseFloat(shippingPrice) || 0; // Default to 0 if parsing fails
+  const tax = parseFloat(taxPrice) || 0;
+  const shipping = parseFloat(shippingPrice) || 0;
 
-  // Calculate totalAmount and ensure it's a number
+  // Calculate totalAmount
   const totalAmount = itemsPrice + tax + shipping;
 
   // Check if totalAmount is a valid number
@@ -43,10 +43,10 @@ const addOrderItems = asyncHandler(async (req, res) => {
     itemsPrice,
     taxPrice: tax,
     shippingPrice: shipping,
-    totalPrice: totalAmount, // Total price
-    totalAmount: totalAmount, // Ensure totalAmount is set here
+    totalPrice: totalAmount,
+    totalAmount: totalAmount,
     isPaid: paymentMethod === 'COD' ? false : true, // Handle COD
-    paidAt: paymentMethod === 'COD' ? null : Date.now(), // Only set paidAt for non-COD payments
+    paidAt: paymentMethod === 'COD' ? null : Date.now(),
   });
 
   const createdOrder = await order.save();
@@ -74,8 +74,8 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
-    order.isPaid = true;
-    order.paidAt = Date.now();
+    order.isPaid = true; // Mark as paid
+    order.paidAt = Date.now(); // Update payment date
     order.paymentResult = {
       id: req.body.id,
       status: req.body.status,
@@ -98,8 +98,8 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
-    order.isDelivered = true;
-    order.deliveredAt = Date.now();
+    order.isDelivered = true; // Mark as delivered
+    order.deliveredAt = Date.now(); // Update delivery date
 
     const updatedOrder = await order.save();
     res.json(updatedOrder);
@@ -132,25 +132,17 @@ const updateShippingStatus = asyncHandler(async (req, res) => {
   const { orderId } = req.body;
 
   try {
-    // Find order by ID
     const order = await Order.findById(orderId);
-
-    // Check if order exists
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Update shipping status to delivered
-    order.isDelivered = true;
-    order.deliveredAt = Date.now();
-
-    // Save updated order
+    order.isDelivered = true; // Mark as delivered
+    order.deliveredAt = Date.now(); // Update delivery date
     const updatedOrder = await order.save();
 
-    // Send success response
     res.json({ message: 'Shipping status updated to Delivered', updatedOrder });
   } catch (error) {
-    // Handle errors
     console.error('Error updating shipping status:', error);
     res.status(500).json({ message: 'Failed to update shipping status', error });
   }
@@ -161,7 +153,7 @@ const updateShippingStatus = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
-  const { delivered, paid } = req.body; // Expecting boolean values
+  const { delivered, paid } = req.body;
 
   try {
     const updatedOrder = await Order.findByIdAndUpdate(
@@ -192,5 +184,5 @@ export {
   getMyOrders,
   getOrders,
   updateShippingStatus,
-  updateOrderStatus, // Export the updateOrderStatus function
+  updateOrderStatus,
 };
