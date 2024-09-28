@@ -13,32 +13,43 @@ const addOrderItems = asyncHandler(async (req, res) => {
     shippingPrice,
   } = req.body;
 
-  if (orderItems && orderItems.length === 0) {
+  // Validate input fields
+  if (!orderItems || orderItems.length === 0) {
     res.status(400);
     throw new Error('No order items');
-  } else {
-    // Calculate itemsPrice
-    const itemsPrice = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-
-    // Calculate totalAmount
-    const totalAmount = itemsPrice + taxPrice + shippingPrice;
-
-    const order = new Order({
-      orderItems,
-      user: req.user._id,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice: totalAmount, // Ensure totalPrice is set here
-      isPaid: paymentMethod === 'COD' ? false : true, // Handle COD
-      paidAt: paymentMethod === 'COD' ? null : Date.now(), // Only set paidAt for non-COD payments
-    });
-
-    const createdOrder = await order.save();
-    res.status(201).json(createdOrder);
   }
+
+  // Calculate itemsPrice
+  const itemsPrice = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+
+  // Ensure taxPrice and shippingPrice are numbers
+  const tax = parseFloat(taxPrice) || 0; // Default to 0 if parsing fails
+  const shipping = parseFloat(shippingPrice) || 0; // Default to 0 if parsing fails
+
+  // Calculate totalAmount and ensure it's a number
+  const totalAmount = itemsPrice + tax + shipping;
+
+  // Check if totalAmount is a valid number
+  if (isNaN(totalAmount)) {
+    res.status(400);
+    throw new Error('Invalid total amount calculation');
+  }
+
+  const order = new Order({
+    orderItems,
+    user: req.user._id,
+    shippingAddress,
+    paymentMethod,
+    itemsPrice,
+    taxPrice: tax,
+    shippingPrice: shipping,
+    totalPrice: totalAmount, // Ensure totalPrice is set here
+    isPaid: paymentMethod === 'COD' ? false : true, // Handle COD
+    paidAt: paymentMethod === 'COD' ? null : Date.now(), // Only set paidAt for non-COD payments
+  });
+
+  const createdOrder = await order.save();
+  res.status(201).json(createdOrder);
 });
 
 // @desc    Get order by ID
