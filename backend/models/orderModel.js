@@ -36,9 +36,10 @@ const orderSchema = mongoose.Schema(
       update_time: { type: String }, // Last update time for payment
       email_address: { type: String }, // Payer email address
     },
-    totalAmount: {
+    itemsPrice: {
       type: Number,
-      required: true, // Total amount for the order (combining item prices, tax, and shipping)
+      required: true,
+      default: 0.0, // Item price total
     },
     taxPrice: {
       type: Number,
@@ -54,6 +55,10 @@ const orderSchema = mongoose.Schema(
       type: Number,
       required: true,
       default: 0.0, // Total price (item cost + tax + shipping)
+    },
+    totalAmount: {
+      type: Number,
+      required: true, // Total amount for the order (combining item prices, tax, and shipping)
     },
     isPaid: {
       type: Boolean,

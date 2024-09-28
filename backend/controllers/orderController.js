@@ -43,7 +43,8 @@ const addOrderItems = asyncHandler(async (req, res) => {
     itemsPrice,
     taxPrice: tax,
     shippingPrice: shipping,
-    totalPrice: totalAmount, // Ensure totalPrice is set here
+    totalPrice: totalAmount, // Total price
+    totalAmount: totalAmount, // Ensure totalAmount is set here
     isPaid: paymentMethod === 'COD' ? false : true, // Handle COD
     paidAt: paymentMethod === 'COD' ? null : Date.now(), // Only set paidAt for non-COD payments
   });
